@@ -1,0 +1,8 @@
+---
+- src: https://github.com/geerlingguy/ansible-role-epel.git
+- src: https://github.com/geerlingguy/ansible-role-remi.git
+- src: https://github.com/geerlingguy/ansible-role-apache.git
+- src: https://github.com/geerlingguy/ansible-role-mysql.git
+- src: https://github.com/geerlingguy/ansible-role-php
+- src: https://github.com/geerlingguy/ansible-role-php-mysql
+- src: https://github.com/geerlingguy/ansible-role-ntp

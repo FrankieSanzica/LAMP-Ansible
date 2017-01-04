@@ -1,0 +1,30 @@
+---
+- hosts: lamp
+  gather_facts: yes
+  become: true
+  
+  vars_files:
+    - vars/main.yml
+
+  roles:
+    - ansible-role-repo-epel
+    - ansible-role-repo-remi
+    - ansible-role-mysql
+    - ansible-role-apache
+    - ansible-role-php
+    - ansible-role-php-mysql
+    - ansible-role-ntp
+
+  tasks:
+
+    - name: Install VIM
+      package:
+        name: vim
+        state: latest
+
+    - name: Allow Apache in firewalld
+      firewalld:
+        immediate: yes
+        service: http
+        permanent: true
+        state: enabled

@@ -1,0 +1,14 @@
+---
+hostname: lamp
+ntp_timezone: America/Detroit
+
+apache_enablerepo: remi
+apache_vhosts:
+  - {servername: "lamp", documentroot: "/var/www/html"}
+
+php_enablerepo: "remi-php70,epel"
+php_packages_state: "latest"
+php_date_timezone: "America/Detroit"
+
+mysql_root_password: root
+mysql_enablerepo: remi
