@@ -1,0 +1,21 @@
+<VirtualHost *:80>
+  ServerName {{ item.site }}
+
+  ## Vhost docroot
+  DocumentRoot "/var/www/{{ item.site }}"
+
+  ## Directories
+  <Directory "/var/www/{{ item.site }}">
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Require all granted
+  </Directory>
+
+  ## Logging
+  ErrorLog "/var/log/httpd/{{ item.site }}_error_log"
+  ServerSignature Off
+  CustomLog "/var/log/httpd/{{ item.site }}_access_log" combined
+
+  ## Server aliases
+  ServerAlias www.{{ item.site  }}
+</VirtualHost>

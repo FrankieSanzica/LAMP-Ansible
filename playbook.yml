@@ -1,30 +1,116 @@
 ---
-- hosts: lamp
+- hosts: all
   gather_facts: yes
   become: true
   
   vars_files:
     - vars/main.yml
 
+  pre_tasks:
+
+    - name: Add timestamps to history
+      lineinfile:
+        dest: /root/.bash_profile
+        state: present
+        line: 'HISTTIMEFORMAT="%m/%d/%y %T "'
+
+    - name: Configure MOTD
+      template:
+        src: 'motd.j2'
+        dest: '/etc/motd'
+        owner: 'root'
+        group: 'root'
+        mode: '0744'
+
+    - name: Insert include into /root/.bash_logout
+      lineinfile:
+        dest: /root/.bash_logout
+        line: cat logout.txt
+        state: present
+
+    - name: Configure logout text
+      template:
+        src: 'logout.j2'
+        dest: '/root/logout.txt'
+        owner: 'root'
+        group: 'root'
+        mode: '0744'
+
+    - name: Install VIM & Git
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - vim
+        - git
+
+    - name: Set global default editor to vim | Rhel
+      lineinfile:
+        dest: '/etc/profile.d/vim.sh'
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+        insertafter: EOF
+      with_items:
+        - { regexp: '^export VISUAL="vim"', line: 'export VISUAL="vim"' }
+        - { regexp: '^export EDITOR="vim"', line: 'export EDITOR="vim"' }
+
+    - name: Adding source vimrc.local include
+      lineinfile:
+        state: present
+        dest: '/etc/vimrc'
+        insertafter: EOF
+        line: 'source /etc/vimrc.local'
+
+    - name: Configure vim global options
+      template:
+        src: 'vimrc.j2'
+        dest: '/etc/vimrc.local'
+        owner: 'root'
+        group: 'root'
+        mode: '0744'
+
+    - name: Add colorprompt script
+      template:
+        src: 'colorprompt.j2'
+        dest: '/etc/profile.d/colorprompt.sh'
+        owner: 'root'
+        group: 'root'
+        mode: '0755'
+      tags: ["colorprompt"]
+
   roles:
+
     - ansible-role-repo-epel
     - ansible-role-repo-remi
-    - ansible-role-mysql
     - ansible-role-apache
     - ansible-role-php
+    - ansible-role-mysql
     - ansible-role-php-mysql
     - ansible-role-ntp
 
   tasks:
 
-    - name: Install VIM
-      package:
-        name: vim
-        state: latest
+    - name: Create vhost file from template
+      template: src=templates/vhost.j2 dest=/etc/httpd/conf.d/{{ item.site }}.conf force=yes
+      with_items:
+        - "{{ vhosts }}"
 
-    - name: Allow Apache in firewalld
+    - name: Create /var/www/{{ item.site }} directory
+      file: path=/var/www/{{ item.site }} state=directory owner=apache group=apache mode=755
+      with_items:
+        - "{{ vhosts }}" 
+
+    - name: Allow Ports 80 & 443 in Firewalld
       firewalld:
         immediate: yes
-        service: http
+        service: "{{ item }}"
         permanent: true
         state: enabled
+      with_items:
+        - http
+        - https
+
+    - name: Restart Apache
+      service:
+        name: httpd
+        state: restarted

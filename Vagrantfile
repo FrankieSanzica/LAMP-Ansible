@@ -1,31 +1,16 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby ts=2:
-
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  # Set the default Image
-  # NOTE: If you want to default to Windows, switch base box images
   config.vm.box = "puppetlabs/centos-7.2-64-nocm"
-  #config.vm.box = "opentable/win-2012r2-standard-amd64-nocm"
   config.ssh.insert_key = false
 
-
-  # Set default virtualbox configurations
   config.vm.provider :virtualbox do |v|
     v.memory = 1024
     v.cpus = 2
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--ioapic", "on"]
   end
-
-  #############################################################################
-  #                                                                           #
-  #                             Linux Section                                 #
-  #                                                                           #
-  #############################################################################
-  # NOTE: If you need a linux host, uncomment the section below.
 
    config.vm.define :lamptestbox do |host|
      host.vm.hostname = "lamptestbox"
@@ -39,11 +24,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
      end
    end
 
-
-  # Ansible provisioner
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
-        "lamp" => ["lamptestbox"]
+        "LAMP" => ["lamptestbox"]
     }
     ansible.playbook = "playbook.yml"
     ansible.galaxy_role_file = "roles/requirements.yml"
